@@ -13,6 +13,7 @@ import MoviesContextProvider from "./contexts/moviesContext";
 import AddMovieReviewPage from './pages/addMovieReviewPage';
 import SignInPage from "./pages/signIn";
 import SignUpPage from "./pages/signUp";
+import AuthContextProvider from "./contexts/authContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,33 +28,35 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
         <MoviesContextProvider>
           <SiteHeader />      {/* New Header  */}
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<HomePage />} />
             <Route path="*" element={<Navigate to="/" />} />
+
             <Route path="/movies/favourites" element={<FavouriteMoviesPage />} />
             <Route path="/movies/upcoming" element={<UpcomingMoviesPage />} />
             <Route path="/movies/:id" element={<MoviePage />} />
             <Route path="/reviews/:id" element={<MovieReviewPage/>} />
             <Route path="/reviews/form" element={<AddMovieReviewPage/>} />
 
-            <Route path="/signIn" element={<SignInPage/>} />
+            <Route path="/" element={<SignInPage/>} />
             <Route path="/signUp" element={<SignUpPage/>} />
 
           </Routes>
         </MoviesContextProvider>
-      </BrowserRouter>
     <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 };
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <BrowserRouter>
+    <AuthContextProvider>
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    </AuthContextProvider>
+  </BrowserRouter>,
 )
-
 

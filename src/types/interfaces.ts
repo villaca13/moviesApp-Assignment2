@@ -79,10 +79,32 @@ export interface UpcomingMovies {
   results: BaseMovieProps[];
 }
 
-  export interface Review {
+export interface Review {
     author: string,
     content: string,
     agree: boolean,
     rating: number,
     movieId: number,
   }
+
+
+// Authentication Context
+
+export interface LogInDetails {
+    email: string;
+    password: string;
+}
+
+export interface SignInProps extends LogInDetails {
+    remember_me?: boolean | undefined;
+}
+
+export interface SignUpProps extends LogInDetails {
+    fullName: string;
+    isSubscribed?: boolean | undefined;
+}
+
+export interface AuthSession {
+    email: string;
+    token: string;
+}

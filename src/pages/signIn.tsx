@@ -12,11 +12,14 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import { styled } from '@mui/material/styles';
+import { Link as RouterLink } from 'react-router-dom';
 import ForgotPassword from '../components/forgotPassword';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from '../components/cardIcons/CustomIcons';
+import { useAuth } from '../contexts/authContext';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -66,6 +69,8 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState('');
+  const { login } = useAuth();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -76,15 +81,23 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    if (emailError || passwordError) {
-      event.preventDefault();
+    event.preventDefault();
+    setSubmitError('');
+    if (!validateInputs()) {
       return;
     }
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    try {
+      login({
+        email: data.get('email') as string,
+        password: data.get('password') as string,
+        remember_me: data.has('remember_me'),
+      });
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Sign in failed. Please try again.'
+      );
+    }
   };
 
   const validateInputs = () => {
@@ -174,16 +187,12 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
               />
             </FormControl>
             <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
+              control={<Checkbox name="remember_me" color="primary" />}
               label="Remember me"
             />
             <ForgotPassword open={open} handleClose={handleClose} />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              onClick={validateInputs}
-            >
+            {submitError && <Alert severity="error">{submitError}</Alert>}
+            <Button type="submit" fullWidth variant="contained">
               Sign in
             </Button>
             <Link
@@ -217,7 +226,8 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             <Typography sx={{ textAlign: 'center' }}>
               Don&apos;t have an account?{' '}
               <Link
-                href="/material-ui/getting-started/templates/sign-in/"
+                component={RouterLink}
+                to="/signUp"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >
