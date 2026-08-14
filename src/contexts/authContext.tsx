@@ -8,6 +8,7 @@ interface AuthContextInterface {
   user: string | null;
   userId: string | null;
   token: string;
+  loading: boolean;
   login(data: SignInProps): Promise<void>;
   logout(): Promise<void>;
 }
@@ -16,6 +17,7 @@ const initialAuthContext: AuthContextInterface = {
   user: null,
   userId: null,
   token: "",
+  loading: true,
   login: async () => {},
   logout: async () => {},
 };
@@ -26,6 +28,7 @@ const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +39,7 @@ const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserId(data.session.user.id);
         setToken(data.session.access_token);
       }
+      setLoading(false);
     });
 
     // Keep state in sync if the session changes elsewhere (refresh, other tab, sign-out)
@@ -65,7 +69,7 @@ const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, userId, token, login, logout }}>
+    <AuthContext.Provider value={{ user, userId, token, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
