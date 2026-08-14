@@ -1,4 +1,4 @@
-import React, {MouseEvent, useContext} from "react";
+import React, { useContext } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -72,13 +72,13 @@ const isMustWatch = mustWatch.find((id) => id === movie.id)? true : false;//NEW
       />
       <CardContent>
         <Grid container>
-          <Grid item xs={6}>
+          <Grid size={6}>
             <Typography variant="h6" component="p">
               <CalendarIcon fontSize="small" />
               {movie.release_date}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={6}>
             <Typography variant="h6" component="p">
               <StarRateIcon fontSize="small" />
               {"  "} {movie.vote_average}{" "}

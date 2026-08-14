@@ -48,7 +48,7 @@ const TemplateMoviePage: React.FC<TemplateMoviePageProps> = ({movie, children}) 
             <MovieHeader {...movie} />
 
             <Grid container spacing={5} style={{ padding: "15px" }}>
-                <Grid item xs={3}>
+                <Grid size={3}>
                     <div>
                         <ImageList cols={1}>
                             {images.map((image: MovieImage) => (
@@ -67,7 +67,7 @@ const TemplateMoviePage: React.FC<TemplateMoviePageProps> = ({movie, children}) 
                     </div>
                 </Grid>
 
-                <Grid item xs={9}>
+                <Grid size={9}>
                     {children}
                 </Grid>
             </Grid>

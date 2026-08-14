@@ -80,7 +80,7 @@ const MoviesContextProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   );
 
   const addReview = useCallback(
-    (movie: BaseMovieProps, review: Review) => {
+    (_movie: BaseMovieProps, review: Review) => {
       persist({ ...movieData, reviews: [...movieData.reviews, review] });
     },
     [movieData, persist]
