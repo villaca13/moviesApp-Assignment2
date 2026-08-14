@@ -1,4 +1,5 @@
-import truncate from "lodash/truncate";
+
+import { truncate } from "lodash";
 
 export const excerpt = (string: string) => {
     return truncate(string, {
