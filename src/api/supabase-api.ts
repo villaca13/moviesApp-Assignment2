@@ -1,8 +1,9 @@
 import { SignInProps, SignUpProps, AuthSession, Review } from "../types/interfaces";
 import { supabase } from "./supabase-client";
+import { UserProfile } from "../types/interfaces";
 
 export const registerUser = async (data: SignUpProps): Promise<void> => {
-  const { error } = await supabase.auth.signUp({
+  const { data: authData, error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
@@ -14,6 +15,9 @@ export const registerUser = async (data: SignUpProps): Promise<void> => {
   });
   if (error) {
     throw new Error(error.message);
+  }
+  if (authData.user) {
+    await upsertProfile(authData.user.id, { email_notifications: data.isSubscribed ?? false });
   }
 };
 
@@ -30,6 +34,7 @@ export const loginUser = async (data: SignInProps): Promise<AuthSession> => {
     throw new Error("Login failed: no session returned");
   }
 
+  await upsertProfile(authData.user.id, { remember_me: data.remember_me ?? false });
   return {
     user: {
       id: authData.user.id,
@@ -98,6 +103,19 @@ export const saveMovieData = async (userId: string, data: MovieDocument): Promis
     .from("user_movie_data")
     .update({ data, updated_at: new Date().toISOString() })
     .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const upsertProfile = async (
+  userId: string,
+  changes: Partial<Pick<UserProfile, "remember_me" | "email_notifications">>
+): Promise<void> => {
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({ user_id: userId, ...changes, updated_at: new Date().toISOString() });
 
   if (error) {
     throw new Error(error.message);

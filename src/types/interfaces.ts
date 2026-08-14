@@ -111,3 +111,9 @@ export interface AuthSession {
   };
   access_token: string;
 }
+
+export interface UserProfile {
+  user_id: string;
+  remember_me: boolean;
+  email_notifications: boolean;
+}
