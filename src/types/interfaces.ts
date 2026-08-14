@@ -105,6 +105,9 @@ export interface SignUpProps extends LogInDetails {
 }
 
 export interface AuthSession {
+  user: {
+    id: string;
     email: string;
-    token: string;
+  };
+  access_token: string;
 }

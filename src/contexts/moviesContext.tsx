@@ -1,72 +1,106 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { BaseMovieProps, Review } from "../types/interfaces";
-
+import { fetchMovieData, saveMovieData, emptyMovieData, MovieDocument } from "../api/supabase-api";
+import { useAuth } from "./authContext";
 
 interface MovieContextInterface {
-    favourites: number[];
-    mustWatch: number[];
-    addToFavourites: ((movie: BaseMovieProps) => void);
-    addToMustWatch: ((movie: BaseMovieProps) => void);
-    removeFromFavourites: ((movie: BaseMovieProps) => void);
-    addReview: ((movie: BaseMovieProps, review: Review) => void);  // NEW
+  favourites: number[];
+  mustWatch: number[];
+  reviews: Review[];
+  addToFavourites: (movie: BaseMovieProps) => void;
+  addToMustWatch: (movie: BaseMovieProps) => void;
+  removeFromFavourites: (movie: BaseMovieProps) => void;
+  addReview: (movie: BaseMovieProps, review: Review) => void;
 }
 
 const initialContextState: MovieContextInterface = {
-    favourites: [],
-    mustWatch: [],
-    addToFavourites: () => {},
-    addToMustWatch: () => {},
-    removeFromFavourites: () => {},
-    addReview: (movie, review) => { movie.id, review},  // NEW
+  favourites: [],
+  mustWatch: [],
+  reviews: [],
+  addToFavourites: () => {},
+  addToMustWatch: () => {},
+  removeFromFavourites: () => {},
+  addReview: () => {},
 };
 
 export const MoviesContext = React.createContext<MovieContextInterface>(initialContextState);
 
 const MoviesContextProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-    const [myReviews, setMyReviews] = useState<Review[]>( [] )  // NEW
-    const [favourites, setFavourites] = useState<number[]>([]);
-    const [mustWatch, setMustWatch] = useState<number[]>([]);
-    
-    const addReview = (movie:BaseMovieProps, review: Review) => {   // NEW
-        setMyReviews( {...myReviews, [movie.id]: review } )
-      };
+  const { userId } = useAuth();
+  const [movieData, setMovieData] = useState<MovieDocument>(emptyMovieData);
 
-    const addToFavourites = useCallback((movie: BaseMovieProps) => {
-        setFavourites((prevFavourites) => {
-            if (!prevFavourites.includes(movie.id)) {
-                return [...prevFavourites, movie.id];
-            }
-            return prevFavourites;
-        });
-    }, []);
+  // (Re)load this user's document whenever they log in, log out, or switch accounts
+  useEffect(() => {
+    if (!userId) {
+      setMovieData(emptyMovieData);
+      return;
+    }
 
-    const addToMustWatch = useCallback((movie: BaseMovieProps) => {
-        setMustWatch((prevMustWatch) => {
-            if (!prevMustWatch.includes(movie.id)) {
-                return [...prevMustWatch, movie.id];
-            }
-            return prevMustWatch;
-        });
-    }, []);
+    fetchMovieData(userId)
+      .then(setMovieData)
+      .catch((error) => console.error("fetchMovieData failed:", error.message));
+  }, [userId]);
 
-    const removeFromFavourites = useCallback((movie: BaseMovieProps) => {
-        setFavourites((prevFavourites) => prevFavourites.filter((mId) => mId !== movie.id));
-    }, []);
+  // Every mutation writes the whole document back — same pattern as a Firestore setDoc
+  const persist = useCallback(
+    (next: MovieDocument) => {
+      if (!userId) return;
+      setMovieData(next);
+      saveMovieData(userId, next).catch((error) =>
+        console.error("saveMovieData failed:", error.message)
+      );
+    },
+    [userId]
+  );
 
-    return (
-        <MoviesContext.Provider
-            value={{
-                favourites,
-                mustWatch,
-                addToFavourites,
-                addToMustWatch,
-                removeFromFavourites,
-                addReview,  // NEW
-            }}
-        >
-            {children}
-        </MoviesContext.Provider>
-    );
+  const addToFavourites = useCallback(
+    (movie: BaseMovieProps) => {
+      if (movieData.favourites.includes(movie.id)) return;
+      persist({ ...movieData, favourites: [...movieData.favourites, movie.id] });
+    },
+    [movieData, persist]
+  );
+
+  const addToMustWatch = useCallback(
+    (movie: BaseMovieProps) => {
+      if (movieData.mustWatch.includes(movie.id)) return;
+      persist({ ...movieData, mustWatch: [...movieData.mustWatch, movie.id] });
+    },
+    [movieData, persist]
+  );
+
+  const removeFromFavourites = useCallback(
+    (movie: BaseMovieProps) => {
+      persist({
+        ...movieData,
+        favourites: movieData.favourites.filter((id) => id !== movie.id),
+      });
+    },
+    [movieData, persist]
+  );
+
+  const addReview = useCallback(
+    (movie: BaseMovieProps, review: Review) => {
+      persist({ ...movieData, reviews: [...movieData.reviews, review] });
+    },
+    [movieData, persist]
+  );
+
+  return (
+    <MoviesContext.Provider
+      value={{
+        favourites: movieData.favourites,
+        mustWatch: movieData.mustWatch,
+        reviews: movieData.reviews,
+        addToFavourites,
+        addToMustWatch,
+        removeFromFavourites,
+        addReview,
+      }}
+    >
+      {children}
+    </MoviesContext.Provider>
+  );
 };
 
 export default MoviesContextProvider;

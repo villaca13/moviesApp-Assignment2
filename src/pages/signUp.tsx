@@ -18,7 +18,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from '../components/cardIcons/CustomIcons';
-import { registerUser } from '../api/auth-api';
+import { registerUser } from '../api/supabase-api';
 import { SignUpProps } from '../types/interfaces';
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -110,7 +110,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     return isValid;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitError('');
     if (!validateInputs()) {
@@ -124,7 +124,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
       isSubscribed: data.has('isSubscribed'),
     };
     try {
-      registerUser(newUser);
+      await registerUser(newUser);
       navigate('/');
     } catch (error) {
       setSubmitError(

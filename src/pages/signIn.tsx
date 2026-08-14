@@ -80,7 +80,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     setOpen(false);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitError('');
     if (!validateInputs()) {
@@ -88,7 +88,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     }
     const data = new FormData(event.currentTarget);
     try {
-      login({
+      await login({
         email: data.get('email') as string,
         password: data.get('password') as string,
         remember_me: data.has('remember_me'),
