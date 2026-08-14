@@ -8,9 +8,10 @@ import { styled } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { useAuth } from "../../contexts/authContext";
 
 const styles = {
     title: {
@@ -19,19 +20,26 @@ const styles = {
   };
 
 const Offset = styled("div")(({ theme }) => theme.mixins.toolbar);
+const PUBLIC_ROUTES = ["/", "/signUp"];
 
 const SiteHeader: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement|null>(null);
   const open = Boolean(anchorEl);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
+  // Don't render the header on sign in / sign up pages
+  if (PUBLIC_ROUTES.includes(location.pathname)) {
+    return null;
+  }
+
   const menuOptions = [
-    { label: "Home", path: "/" },
+    { label: "Home", path: "/dashboard" },
     { label: "Favorites", path: "/movies/favourites" },
     { label: "Upcoming", path: "/movies/upcoming" },
-    { label: "Option 4", path: "/" },
   ];
 
   const handleMenuSelect = (pageURL: string) => {
@@ -40,6 +48,10 @@ const SiteHeader: React.FC = () => {
 
   const handleMenu = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
+  };
+
+  const handleLogout = async () => {
+    await logout(); // already navigates to "/" for you
   };
 
   return (
@@ -100,6 +112,16 @@ const SiteHeader: React.FC = () => {
                   {opt.label}
                 </Button>
               ))}
+            </>
+          )}
+          {user && (
+            <>
+              <Typography variant="body1" sx={{ mx: 2 }}>
+                {user}
+              </Typography>
+              <Button color="inherit" onClick={handleLogout}>
+                Logout
+              </Button>
             </>
           )}
         </Toolbar>
