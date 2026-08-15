@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PageTemplate from "../components/templateMovieListPage";
 import { getMovies } from "../api/tmdb-api";
 import useFiltering from "../hooks/useFiltering";
@@ -23,7 +23,11 @@ const genreFiltering = {
 };
 
 const HomePage: React.FC = () => {
-  const { data, error, isLoading, isError } = useQuery<DiscoverMovies, Error>("discover", getMovies);
+  const [page, setPage] = useState(1);
+  const { data, error, isLoading, isError } = useQuery<DiscoverMovies, Error>(
+    ["discover", page],
+    () => getMovies(page)
+  );
   const { filterValues, setFilterValues, filterFunction } = useFiltering(
     [titleFiltering, genreFiltering]
   );
@@ -59,6 +63,9 @@ const HomePage: React.FC = () => {
       <PageTemplate
         title="Discover Movies"
         movies={displayedMovies}
+        page={page}
+        totalPages={data ? data.total_pages : 1}
+        onPageChange={setPage}
         action={(movie: BaseMovieProps) => {
           return <AddToFavouritesIcon {...movie} />
         }}

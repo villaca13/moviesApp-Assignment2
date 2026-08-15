@@ -53,6 +53,9 @@ export interface MoviePageProps {
 export type FilterOption = "title" | "genre";
 export interface MovieListPageTemplateProps extends BaseMovieListProps {
   title: string;
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
   export interface Review{
     id: string;
